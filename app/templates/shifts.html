@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}График смен{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h1 class="mb-4">График смен</h1>
+    
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Смена А</th>
+                    <th>Смена Б</th>
+                    <th>Смена В</th>
+                    <th>Смена Г</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(schedule['А']|length) %}
+                <tr>
+                    <td>{{ schedule['А'][i]['date'].strftime('%d.%m.%Y') }}</td>
+                    {% for shift in ['А', 'Б', 'В', 'Г'] %}
+                    <td class="shift-cell shift-{{ schedule[shift][i]['type'] }}" data-shift-type="{{ schedule[shift][i]['type'] }}">
+                        {% if schedule[shift][i]['time_start'] %}
+                            {{ schedule[shift][i]['time_start'] }} - 
+                            {% if schedule[shift][i]['type'] == '2' %}
+                                {{ (schedule[shift][i]['date'] + timedelta(days=1)).strftime('%d.%m.%Y') }}
+                            {% endif %}
+                            {{ schedule[shift][i]['time_end'] }}
+                        {% else %}
+                            {{ {'О': 'Отсыпной', 'В': 'Выходной'}[schedule[shift][i]['type']] }}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

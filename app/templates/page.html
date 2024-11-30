@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h2 class="mb-1">{{ page_settings.page_name }}</h2>
+
+    <div class="d-flex align-items-center mb-2">
+        <ul class="nav nav-tabs me-auto" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" 
+                   id="hours-tab"
+                   data-bs-toggle="tab" 
+                   data-bs-target="#hoursTab"
+                   onclick="showTab('hours')" 
+                   aria-selected="true" 
+                   role="tab">Часы</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" 
+                   id="days-tab"
+                   data-bs-toggle="tab" 
+                   data-bs-target="#daysTab"
+                   onclick="showTab('days')" 
+                   aria-selected="false" 
+                   role="tab">Сутки</a>
+            </li>
+        </ul>
+        <button class="btn btn-success" onclick="exportToExcel()">Экспорт в Excel</button>
+    </div>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" 
+             id="hoursTab" 
+             role="tabpanel" 
+             aria-labelledby="hours-tab">
+            <div class="table-responsive table-container">
+                <table class="table table-hover data-table">
+                    <thead>
+                        <tr>
+                            <th>Дата и время</th>
+                            {% for param in parameters %}
+                                <th onclick="showParameterChart('{{ param.Name }}', '{{ param.CodeId }}')" 
+                                    class="parameter-header" 
+                                    title="Нажмите для просмотра графика">
+                                    {{ param.Name }}
+                                </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for datetime, values in data.items() %}
+                        <tr>
+                            <td>{{ datetime.strftime('%d.%m.%Y %H:%M') }}</td>
+                            {% for param in parameters %}
+                                <td>{{ values.get(param.CodeId, '-') }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" 
+             id="daysTab" 
+             role="tabpanel" 
+             aria-labelledby="days-tab">
+            <div class="table-responsive table-container">
+                <table class="table table-hover data-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            {% for param in parameters %}
+                                <th onclick="showParameterChart('{{ param.Name }}', '{{ param.CodeId }}')" 
+                                    class="parameter-header" 
+                                    title="Нажмите для просмотра графика">
+                                    {{ param.Name }}
+                                    <br>
+                                    <small>({{ 'Сумма' if param.aggregation_type == 'sum' 
+                                        else 'Среднее' if param.aggregation_type == 'avg' 
+                                        else 'Минимум' if param.aggregation_type == 'min' 
+                                        else 'Максимум' if param.aggregation_type == 'max'
+                                        else 'Средневзвешенное' }})</small>
+                                </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for date, values in daily_data.items() %}
+                        <tr>
+                            <td>{{ date }}</td>
+                            {% for param in parameters %}
+                                {% set daily_values = values.get(param.CodeId, {'aggregation': '-'}) %}
+                                <td>{{ daily_values['aggregation'] }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для графика -->
+    <div class="modal fade" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="chartModalLabel">График параметра</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="chart-controls mb-1">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto d-flex align-items-center">
+                                <label for="minY" class="col-form-label" style="width: 150px;">Минимум Y:</label>
+                                <input type="number" id="minY" class="form-control" onchange="updateChartAxes()">
+                            </div>
+                            <div class="col-auto d-flex align-items-center">
+                                <label for="maxY" class="col-form-label" style="width: 150px;">Максимум Y:</label>
+                                <input type="number" id="maxY" class="form-control" onchange="updateChartAxes()">
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-secondary btn-sm" onclick="resetChartAxes()">Сбросить</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="parameterChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Добавляем Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/pages.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/export.js') }}"></script>
+
+
+{% endblock %} 

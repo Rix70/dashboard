@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.getElementById('parameterSelect').addEventListener('change', function() {
+    const parameterId = this.value;
+    fetch('/update_shift_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ parameter_id: parameterId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Обновляем таблицу
+        const shifts = ['А', 'Б', 'В', 'Г'];
+        shifts.forEach(shift => {
+            document.querySelector(`td:nth-child(${shifts.indexOf(shift) + 1})`).textContent = 
+                data[shift].toFixed(2);
+        });
+        
+        // Обновляем график
+        const chart = Chart.getChart('shiftChart');
+        chart.data.datasets[0].data = shifts.map(shift => data[shift]);
+        chart.update();
+    })
+    .catch(error => console.error('Error:', error));
+});
+</script>
+{% endblock %}
+
+{% block content %}
+    <div class="content-container">
+        <h1 class="mb-4">Соревнования смен</h1>
+        {% if current_user.is_authenticated %}
+            <!-- Карточки в одном ряду -->
+            <div class="row">
+                <!-- Таблица -->
+                <div class="col-xl-6 col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                Суммарные значения по сменам {{ selected_parameter.name }}
+                                <small class="text-muted">
+                                    ({{ selected_parameter.aggregation_type }})
+                                </small>
+                                <small class="text-muted d-block">
+                                    {{ start_date.strftime('%d.%m.%Y %H:%M') }} - {{ end_date.strftime('%d.%m.%Y %H:%M') }}
+                                </small>
+                            </h6>
+                            <div class="ml-auto">
+                                <select id="parameterSelect" class="form-control">
+                                    {% for param in parameters %}
+                                        <option value="{{ param.CodeId }}" {% if param.CodeId == selected_parameter_id %}selected{% endif %}>
+                                            {{ param.Name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered bg-white">
+                                    <thead>
+                                        <tr>
+                                            {% for shift in ['А', 'Б', 'В', 'Г'] %}
+                                                <th class="text-center">Смена {{ shift }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            {% for shift in ['А', 'Б', 'В', 'Г'] %}
+                                                <td class="text-center">{{ "%.2f"|format(shift_totals[shift]|float) }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- График -->
+                <div class="col-xl-6 col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">График распределения по сменам</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-area">
+                                <canvas id="shiftChart"></canvas>
+                            </div>
+                            <hr>
+                            <div class="text-center small mt-2">
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-primary"></i> Смена А
+                                </span>
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-success"></i> Смена Б
+                                </span>
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-info"></i> Смена В
+                                </span>
+                                <span>
+                                    <i class="fas fa-circle text-warning"></i> Смена Г
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Почасовой график работы смен</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped bg-white">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">Дата</th>
+                                            <th class="text-center">Час</th>
+                                            <th class="text-center">Работающая смена</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for entry in shift_schedule %}
+                                        <tr>
+                                            <td class="text-center">{{ entry.date.strftime('%d.%m.%Y') }}</td>
+                                            <td class="text-center">{{ '%02d:00'|format(entry.hour) }}</td>
+                                            <td class="text-center">
+                                                {% if entry.shift %}
+                                                    Смена {{ entry.shift }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <p class="lead">Пожалуйста, <a href="{{ url_for('auth.login') }}">войдите</a> или <a href="{{ url_for('auth.register') }}">зарегистрируйтесь</a>.</p>
+        {% endif %}
+    </div>
+
+    {% if current_user.is_authenticated %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('shiftChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Смена А', 'Смена Б', 'Смена В', 'Смена Г'],
+                    datasets: [{
+                        label: 'Значение параметра 1',
+                        data: [
+                            {{ shift_totals['А']|float }},
+                            {{ shift_totals['Б']|float }},
+                            {{ shift_totals['В']|float }},
+                            {{ shift_totals['Г']|float }}
+                        ],
+                        backgroundColor: [
+                            'rgba(78, 115, 223, 0.5)',
+                            'rgba(28, 200, 138, 0.5)',
+                            'rgba(54, 185, 204, 0.5)',
+                            'rgba(246, 194, 62, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgb(78, 115, 223)',
+                            'rgb(28, 200, 138)',
+                            'rgb(54, 185, 204)',
+                            'rgb(246, 194, 62)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 25,
+                            top: 25,
+                            bottom: 0
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: "rgb(234, 236, 244)",
+                                drawBorder: false,
+                                borderDash: [2],
+                                zeroLineBorderDash: [2]
+                            },
+                            ticks: {
+                                padding: 10
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                padding: 10
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: "rgb(255, 255, 255)",
+                            bodyColor: "#858796",
+                            titleMarginBottom: 10,
+                            titleColor: '#6e707e',
+                            titleFontSize: 14,
+                            borderColor: '#dddfeb',
+                            borderWidth: 1,
+                            padding: 15,
+                            displayColors: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+    {% endif %}
+{% endblock %}

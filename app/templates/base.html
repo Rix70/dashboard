@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Кнопка переключения сайдбара -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+    </button>
+
+    <!-- Оверлей для мобильной версии -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Шапка -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">Система мониторинга</a>
+                <div class="ms-auto d-flex align-items-center">
+                    {% if current_user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"></path>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"></path>
+                              </svg>
+                                <span class="me-3"> {{ current_user.username }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end bg-white rounded-3">
+                                {% if current_user.is_admin %}
+                                <li><a class="dropdown-item text-light-hover" href="/admin">Админ-панель</a></li>
+                                <li><a class="dropdown-item text-light-hover" href="{{url_for('main.manage_pages')}}">Управление страницами</a></li>
+                                <li><a class="dropdown-item text-light-hover" href="{{url_for('main.manage_aggregation')}}">Управление агрегацией</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item text-light-hover" href="{{ url_for('auth.logout') }}">Выйти</a></li>
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    {% set auth_pages = ['auth.login', 'auth.register'] %}
+    {% if request.endpoint not in auth_pages %}
+    <!-- Боковая панель -->
+    <aside class="sidebar" id="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('main.index') }}" 
+                  class="{{ 'active' if request.endpoint == 'main.index' }}">Главная</a></li>
+            {% if current_user.is_authenticated %}
+                {% for page in pages %}
+                    <li><a href="{{ url_for('main.dynamic_page', page_id=page.id) }}"
+                          class="{{ 'active' if request.endpoint == 'main.dynamic_page' and 
+                                            request.view_args.page_id|string == page.id|string }}">
+                        {{ page.page_name }}</a></li>
+                {% endfor %}
+            {% endif %}
+            <li><a href="{{ url_for('main.shifts') }}"
+                  class="{{ 'active' if request.endpoint == 'main.shifts' }}">График смен</a></li>
+        </ul>
+    </aside>
+    {% endif %}
+    <!-- Основной контент -->
+    <div class="main-content {% if request.endpoint in auth_pages %}auth-page{% endif %}">
+        <main class="main-container">
+            <!-- Выбор даты -->
+            {% set excluded_endpoints = ['main.create_page', 'main.manage_pages', 'main.manage_aggregation', 'auth.login', 'auth.register'] %}
+            {% if request.endpoint not in excluded_endpoints %}
+                {% from 'date-selector.html' import date_selector %}
+                {{ date_selector() }}
+            {% endif %}<!-- -->
+        
+            {% if current_user.is_authenticated or request.endpoint in auth_pages %}
+                {% block content %}{% endblock %}
+            {% endif %}
+        </main>
+    </div>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <p class="m-0">&copy; 2024 Система мониторинга</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

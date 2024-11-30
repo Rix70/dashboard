@@ -1,0 +1,21 @@
+{% macro date_selector() %}
+<div class="date-selector-container">
+    <form method="POST" action="{{ url_for('main.update_dates') }}" class="date-selector-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="d-flex align-items-center gap-3">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text">От</span>
+                <input type="datetime-local" class="form-control form-control-sm" name="start_date" 
+                       value="{{ session.get('start_date', '').strftime('%Y-%m-%dT%H:%M') if session.get('start_date') else '' }}">
+            </div>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text">До</span>
+                <input type="datetime-local" class="form-control form-control-sm" name="end_date"
+                       value="{{ session.get('end_date', '').strftime('%Y-%m-%dT%H:%M') if session.get('end_date') else '' }}">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Применить</button>
+        </div>
+    </form>
+</div>
+<script src="{{ url_for('static', filename='js/date-selector.js') }}"></script>
+{% endmacro %}

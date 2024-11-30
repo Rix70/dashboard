@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+<!-- TODO: 1 Добавить кнопку для сброса фильтра, если есть поиск
+           2 Галки для выбора типа агрегации -->
+{% block content %}
+<div class="content-container">
+    <div class="manage-aggregation-container">
+        <h1>Управление агрегацией данных</h1>
+        
+        <div class="search-container">
+            <div class="input-group">
+                <input type="text" 
+                       class="form-control search-box" 
+                       id="searchBox"
+                       placeholder="Введите название параметра..." 
+                       oninput="filterAggregationParameters()">
+                <button class="btn btn-outline-secondary" 
+                        type="button"
+                        onclick="clearAggregationSearch()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="parameters-grid">
+            {% for param in parameters %}
+            <div class="parameter-card">
+                <h3>{{ param.Name }}</h3>
+                <p class="parameter-id">ID: {{ param.CodeId }}</p>
+                
+                <form onsubmit="updateAggregation(event, {{ param.CodeId }})">
+                    <div class="form-group">
+                        <label>Тип агрегации:</label>
+                        <select name="aggregation_type" 
+                                class="aggregation-type" 
+                                onchange="toggleWeightParameter(this, {{ param.CodeId }})">
+                            <option value="avg" {% if param.aggregation_type == 'avg' %}selected{% endif %}>Среднее</option>
+                            <option value="sum" {% if param.aggregation_type == 'sum' %}selected{% endif %}>Сумма</option>
+                            <option value="min" {% if param.aggregation_type == 'min' %}selected{% endif %}>Минимум</option>
+                            <option value="max" {% if param.aggregation_type == 'max' %}selected{% endif %}>Максимум</option>
+                            <option value="weighted_avg" {% if param.aggregation_type == 'weighted_avg' %}selected{% endif %}>Средневзвешенное</option>
+                        </select>
+                    </div>
+                    
+                    <div id="weight_param_{{ param.CodeId }}" 
+                        class="weight-parameter" 
+                        style="display: {% if param.aggregation_type == 'weighted_avg' %}block{% else %}none{% endif %}">
+                        <label>Параметр-вес:</label>
+                        
+                        <!-- Выпадающий список с параметрами -->
+                        <select name="weight_parameter_id" 
+                                id="weight_select_{{ param.CodeId }}"
+                                class="weight-select">
+                            {% for weight_param in parameters %}
+                                {% if weight_param.CodeId != param.CodeId %}
+                                    <option value="{{ weight_param.CodeId }}" 
+                                            {% if param.weight_parameter_id == weight_param.CodeId %}selected{% endif %}>
+                                        {{ weight_param.Name }} (ID: {{ weight_param.CodeId }})
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+
+                        <!-- Ручной ввод ID -->
+                        <div class="manual-id-input">
+                            <label>
+                                <input type="checkbox" 
+                                    onchange="toggleManualInput(this, {{ param.CodeId }})"
+                                    {% if param.weight_parameter_id and param.weight_parameter_id not in parameters|map(attribute='CodeId')|list %}checked{% endif %}>
+                                Ввести ID вручную
+                            </label>
+                            <input type="number" 
+                                name="manual_weight_id_{{ param.CodeId }}"
+                                class="manual-weight-id"
+                                placeholder="{{ param.weight_parameter_id if param.weight_parameter_id else 'Введите ID параметра-веса' }}"
+                                value="{{ param.weight_parameter_id if param.weight_parameter_id and param.weight_parameter_id not in parameters|map(attribute='CodeId')|list else '' }}"
+                                style="display: {% if param.weight_parameter_id and param.weight_parameter_id not in parameters|map(attribute='CodeId')|list %}block{% else %}none{% endif %}">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages.js') }}"></script>
+{% endblock %}
+{% endblock %} 

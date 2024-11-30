@@ -1,0 +1,1359 @@
+/* Определение глобальных CSS переменных */
+
+:root {
+    /* Основные цвета */
+    --primary-color: #2196F3;
+    --primary-light: #64B5F6;
+    --primary-dark: #1976D2;
+    
+    /* Цвета фона */
+    --background-light: #E3F2FD;
+    --background-white: #FFFFFF;
+    
+    /* Цвета текста */
+    --text-dark: #1A237E;
+    --text-light: #757575;
+    
+    /* Цвета границ */
+    --border-color: #BBDEFB;
+    
+    /* Новые переменные */
+    --border-radius-default: 4px;
+    --border-radius-large: 8px;
+    --box-shadow-default: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --transition-default: 0.3s;
+    --spacing-default: 20px;
+    --scrollbar-size: 8px;
+}
+
+/* Базовые стили */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+}
+
+/* Контейнер для основного макета */
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Боковое меню */
+.sidebar {
+    width: 230px;
+    background-color: var(--background-white);
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-light) var(--background-light);
+}
+
+/* Заголовок бокового меню */
+.sidebar-title {
+    color: var(--primary-dark);
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-light);
+}
+
+/* Список элементов бокового меню */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar-menu li {
+    margin-bottom: 2px;
+}
+
+/* Ссылки в боковом меню */
+.sidebar-menu a {
+    display: block;
+    padding: 10px;
+    color: var(--text-dark);
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.sidebar-menu a:hover {
+    background-color: var(--background-light);
+    color: var(--primary-dark);
+    border-left-color: var(--primary-light);
+}
+
+.sidebar-menu a.active {
+    background-color: var(--background-light);
+    color: var(--primary-dark);
+    border-left-color: var(--primary-color);
+}
+
+/* Основной контент */
+.main-content {
+    margin-left: 270px;
+    padding: 15px;
+    width: calc(100% - 290px);
+    box-sizing: border-box;
+}
+
+
+/* Стили таблицы данных */
+.data-table {
+    width: 100%;
+    min-width: 800px; 
+    border-collapse: separate; 
+    border-spacing: 0;
+    table-layout: fixed; /* Добавляем фиксированную раскладку таблицы */
+}
+
+/* Заголовок таблицы */
+.data-table thead {
+    position: sticky; /* Фиксируем заголовки */
+    top: 0; /* Прикрепляем заголовки к верху */
+    z-index: 2; /* Позиционируем заголовки над данными */
+    background-color: var(--primary-color); 
+}
+
+/* Ячейки заголовка */
+.data-table th { 
+    background-color: var(--primary-color);  
+    color: var(--background-white); 
+    padding: 12px;  
+    font-weight: 500;  
+    text-align: center; 
+    border-bottom: 2px solid var(--primary-dark); 
+    white-space: normal; /* Разрешаем перенос текста */
+    width: 80px; /* Фиксированная ширина для всех столбцов */
+    vertical-align: middle; 
+    line-height: 1.2; 
+}
+
+.data-table th:first-child {
+    z-index: 3;
+    background-color: var(--primary-color);
+}
+
+/* Особые стили для первого столбца (дата и время) */
+.data-table th:first-child,
+.data-table td:first-child {
+    width: 150px;  /* Немного шире для даты и времени */
+}
+
+/* Ячейки данных */
+.data-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid rgba(0, 0, 0, 0.1); /* Добавляем слегка заметную правую границу */
+    border-left: 1px solid rgba(0, 0, 0, 0.1); /* Добавляем слегка заметную левую границу */
+    text-align: right; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; /* Добавляем многоточие при переполнении */
+}
+/* Первый столбец таблицы */
+.data-table td:first-child {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background-color: var(--background-white);
+}
+/* Заголовки первого столбца */
+.data-table th:first-child {
+    z-index: 3;
+    background-color: var(--primary-color);
+}
+
+/* Эффект при наведении на строку */
+.data-table tbody tr:hover td {
+    background-color: var(--background-light);
+}
+
+.data-table tbody tr:hover td:first-child {
+    background-color: var(--background-light);
+}
+
+/* Стили скроллбара */
+.table-container::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: var(--background-light);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Стили форм */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-dark);
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--background-white);
+}
+
+/* Стили кнопок */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--background-white);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Стили вкладок */
+.tabs {
+    margin: 20px 0;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.tab {
+    display: inline-block;
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text-dark);
+}
+
+.tab.active {
+    border-bottom: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Медиа-запросы для адаптивности */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .container {
+        flex-direction: column;
+    }
+    
+    .date-select-container,
+    .create-page-container {
+        margin: 10px;
+        width: auto;
+    }
+    
+    .data-table {
+        margin: 10px 0;
+        font-size: 14px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 8px;
+    }
+}
+
+/* Стили страницы выбора дат */
+.date-select-container {
+    max-width: 600px;
+    margin: 10px auto;
+    padding: 10px;
+    background-color: var(--background-white);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.date-form {
+    margin-top: 20px;
+}
+
+/* Стили страницы создания */
+.create-page-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: var(--background-white);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.create-page-form {
+    max-width: 800px;
+}
+
+/* Стили поиска и списка параметров */
+.search-box {
+    margin-bottom: 15px;
+}
+
+.parameters-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.parameter-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Выравнивание элементов по левому краю */
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.parameter-item:last-child {
+    border-bottom: none;
+}
+
+.parameter-item:hover {
+    background-color: var(--background-light);
+}
+
+.parameter-item input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* Стили выбранных параметров */
+.selected-parameters {
+    background-color: var(--background-light);
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.parameter-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 4px;
+    background-color: var(--primary-light);
+    color: var(--background-white);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* Стили для datetime-local инпутов */
+input[type="datetime-local"] {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 300px;
+}
+
+/* Общие стили */
+h1 {
+    color: var(--primary-dark);
+    margin: 3px;
+    padding-bottom: 3px;
+    border-bottom: 2px solid var(--primary-light);
+}
+
+
+/* Стили сообщений */
+.error-message {
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.success-message {
+    color: var(--primary-dark);
+    background-color: var(--background-light);
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+/* Контейнер таблицы */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    max-height: calc(90vh - 150px);
+    position: relative;
+    background: var(--background-white);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+/* Стили для таблицы */
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 800px;
+}
+
+
+/* Стили для скроллбара */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: var(--background-light);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Добавляем стили для страницы управления */
+.manage-pages-container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.page-item {
+    background-color: var(--background-white);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+    padding: 20px;
+}
+
+/* Заголовок страницы */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.page-header h3 {
+    margin: 0;
+    color: var(--primary-dark);
+}
+
+/* Кнопки действий */
+.page-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-edit {
+    background-color: var(--primary-light);
+    color: var(--background-white);
+}
+
+.btn-delete {
+    background-color: #f44336;
+    color: var(--background-white);
+}
+
+.btn-secondary {
+    background-color: var(--text-light);
+    color: var(--background-white);
+}
+
+/* Формы редактирования */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.page-edit-form {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Селектор дат */
+.date-selector {
+    background-color: var(--background-white);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: auto;
+}
+
+.date-selector .date-form {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 40px;
+}
+
+.date-selector .form-group {
+    margin: 0;
+    min-width: 250px;
+}
+
+.date-selector .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+.date-selector input[type="datetime-local"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--background-white);
+}
+
+.date-selector .btn {
+    margin: 0;
+    padding: 8px 20px;
+    height: 37px;
+}
+
+@media (max-width: 768px) {
+    .date-selector {
+        margin: 0 10px 20px;
+    }
+    
+    .date-selector .date-form {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .date-selector .form-group {
+        width: 100%;
+    }
+    
+    .date-selector .btn {
+        width: 100%;
+    }
+}
+
+.export-btn {
+    float: right;
+    margin: 0;
+    background-color: #4CAF50;
+}
+
+.export-btn:hover {
+    background-color: #45a049;
+} 
+
+.create-page-btn {
+    float: right;
+    margin: 0;
+    background-color: #4CAF50;
+}
+
+.create-page-btn:hover {
+    background-color: #45a049;
+} 
+
+/* Фиксация первого столбца */
+.data-table th:first-child,
+.data-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background-color: var(--background-white);
+    border-right: 2px solid var(--border-color);
+}
+
+/* Повышаем z-index для заголовка первого столбца */
+.data-table th:first-child {
+    z-index: 3;
+    background-color: var(--primary-color);
+}
+
+
+/* При наведении на строку меняем цвет фиксированной ячейки */
+.data-table tbody tr:hover td:first-child {
+    background-color: var(--background-light);
+} 
+
+/* Стили для скроллбара бокового меню (WebKit browsers) */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: var(--background-light);
+    border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+} 
+
+.parameter-header {
+    cursor: pointer;
+}
+
+.parameter-header:hover {
+    background-color: var(--primary-dark);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    height: 70%;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: black;
+} 
+
+/* Базовые стили скроллбара - создаем миксин */
+.scrollbar-style {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-light) var(--background-light);
+}
+
+.scrollbar-style::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+}
+
+.scrollbar-style::-webkit-scrollbar-track {
+    background: var(--background-light);
+    border-radius: var(--border-radius-default);
+}
+
+.scrollbar-style::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: var(--border-radius-default);
+}
+
+.scrollbar-style::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Примняем стии скроллбара к элементам */
+.sidebar,
+.table-container {
+    @extend .scrollbar-style;
+}
+
+/* Общие стили для контейнеров */
+.container-base {
+    background-color: var(--background-white);
+    border-radius: var(--border-radius-large);
+    box-shadow: var(--box-shadow-default);
+    padding: var(--spacing-default);
+}
+
+/* Применяем базовые стили к контейнерам */
+.date-select-container,
+.create-page-container,
+.manage-pages-container,
+.page-item {
+    @extend .container-base;
+}
+
+/* Общие стили для кнопок */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--border-radius-default);
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color var(--transition-default);
+} 
+
+/* Стили для элементов управления графиком */
+.chart-controls {
+    display: flex;
+    gap: 10px;  
+    margin-bottom: 0px;
+    align-items: center;
+    padding: 3px;
+    background-color: var(--background-light);
+    border-radius: var(--border-radius-default);
+}
+
+.axis-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.axis-control input {
+    width: 100px;
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-default);
+}
+
+.axis-control label {
+    color: var(--text-dark);
+    font-weight: 500;
+} 
+
+.btn-secondary {
+    background-color: var(--primary-color);
+    color: var(--background-white);
+    margin: 0;
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Стили для суточной таблицы */
+#daysTab .data-table th {
+    text-align: center;
+    padding: 8px;
+    background-color: var(--primary-color);
+    color: var(--background-white);
+}
+
+#daysTab .data-table td {
+    text-align: right;
+    padding: 8px;
+}
+
+/* Фиксированная ширина для столбцов */
+#daysTab .data-table th:not(:first-child) {
+    width: 120px;
+}
+#daysTab .parameter-header {
+    cursor: pointer;
+}
+
+#daysTab .parameter-header:hover {
+    background-color: var(--primary-dark);
+}
+
+
+/* Стили для выбора типа агрегации */
+.aggregation-type {
+    margin-left: auto; /* Сдвигаем элемент вправо */
+    padding: 2px 5px;
+    color: var(--text-light);
+    
+    /*border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-default);
+    background-color: var(--background-white);*/
+}
+
+.weight-parameter {
+    margin: 0;
+    min-width: 250px;
+}
+
+.weight-parameter label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-dark);
+
+}
+
+.weight-parameter select {
+    padding: 2px 5px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-default);
+    background-color: var(--background-white);
+}
+
+.manage-aggregation-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.parameters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.parameter-card {
+    background-color: var(--background-white);
+    border-radius: var(--border-radius-default);
+    padding: 15px;
+    box-shadow: var(--box-shadow-default);
+}
+
+.parameter-card h3 {
+    color: var(--primary-dark);
+    margin: 0 0 10px 0;
+    font-size: 1.1em;
+}
+
+.parameter-id {
+    color: var(--text-light);
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+.weight-parameter {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: var(--background-light);
+    border-radius: var(--border-radius-default);
+}
+
+.weight-parameter label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-dark);
+}
+
+.weight-parameter select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-default);
+    background-color: var(--background-white);
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 4px;
+    color: white;
+    font-weight: 500;
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.notification.success {
+    background-color: #4CAF50;
+}
+
+.notification.error {
+    background-color: #f44336;
+}
+
+.notification.warning {
+    background-color: #ff9800;
+}
+
+/* Анимации для уведомлений */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Стили для поиска параметра-веса */
+.weight-search-box {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-default);
+}
+
+.manual-id-input {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+    padding-right: 18px;
+}
+
+.manual-id-input label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.manual-weight-id {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-default);
+    display: none;
+}
+
+.weight-select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-default);
+}
+
+.search-container {
+    padding-right: 18px;
+}
+
+
+.parameter-order {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    margin-right: 8px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.parameter-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 4px;
+    background-color: var(--primary-light);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Стили для tooltip */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    background-color: var(--primary-dark);
+    color: var(--background-white);
+    border-radius: var(--border-radius-default);
+    font-size: 14px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-default), visibility var(--transition-default);
+    z-index: 1000;
+}
+
+[data-tooltip]:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Стили для больших подсказок */
+[data-tooltip-large] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip-large]::before {
+    content: attr(data-tooltip-large);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 16px;
+    background-color: var(--primary-dark);
+    color: var(--background-white);
+    border-radius: var(--border-radius-default);
+    font-size: 14px;
+    width: max-content;
+    max-width: 300px;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-default), visibility var(--transition-default);
+    z-index: 1000;
+}
+
+[data-tooltip-large]:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Стили для шапки страницы управления */
+.manage-pages-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.manage-pages-header h1 {
+    margin: 0;
+}
+
+.manage-pages-header form {
+    margin: 0;
+}
+
+/* Обновляем стили кнопки */
+.create-page-btn {
+    margin: 0;
+    background-color: #4CAF50;
+    color: var(--background-white);
+}
+
+.create-page-btn:hover {
+    background-color: #45a049;
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: var(--background-white);
+    border-radius: var(--border-radius-large);
+    box-shadow: var(--box-shadow-default);
+}
+
+.login-form {
+    margin-top: 20px;
+}
+
+.login-form .form-group {
+    margin-bottom: 15px;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-dark);
+}
+
+.login-form input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-default);
+}
+
+.login-form button {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Стили для вложенных меню */
+.menu-level-0 {
+    margin-left: 0;
+}
+
+.menu-level-1 {
+    margin-left: 20px;
+}
+
+.menu-level-2 {
+    margin-left: 40px;
+}
+
+.submenu {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 5px 15px;
+    display: none;
+}
+
+.submenu.active {
+    display: block;
+}
+
+.toggle-submenu {
+    float: right;
+    font-size: 12px;
+    transition: transform 0.3s;
+    cursor: pointer;
+}
+
+.toggle-submenu.open {
+    transform: rotate(180deg);
+}
+
+/* Стили для иерархии страниц */
+.pages-list {
+    padding: 20px;
+}
+
+.page-item {
+    position: relative;
+    padding: 10px;
+    margin: 5px 0;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+/* Отступы для разных уровней вложенности */
+.level-0 { margin-left: 0; }
+.level-1 { margin-left: 30px; }
+.level-2 { margin-left: 60px; }
+.level-3 { margin-left: 90px; }
+.level-4 { margin-left: 120px; }
+
+/* Индикаторы уровней и связей */
+.page-level-indicator {
+    position: absolute;
+    left: -20px;
+    color: var(--text-secondary);
+    font-family: monospace;
+    display: flex;
+    align-items: center;
+}
+
+.page-level-indicator::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    width: 20px;
+    height: 1px;
+    background: var(--border-color);
+}
+
+/* Стили для заголовка страницы */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.page-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Стили для действий со страницей */
+.page-actions {
+    display: flex;
+    gap: 10px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.page-item:hover .page-actions {
+    opacity: 1;
+}
+
+/* Стили для drag-and-drop */
+.page-item.draggable {
+    cursor: move;
+}
+
+.page-item.dragging {
+    opacity: 0.5;
+    background: var(--bg-hover);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.page-item.drop-above {
+    border-top: 2px solid var(--primary-color);
+    margin-top: 3px;
+}
+
+.page-item.drop-below {
+    border-bottom: 2px solid var(--primary-color);
+    margin-bottom: 3px;
+}
+
+.page-item.drop-inside {
+    border: 2px solid var(--primary-color);
+    background: var(--bg-hover);
+}
+
+/* Визуальные индикаторы вложенности */
+.page-item::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 50%;
+    width: 15px;
+    height: 1px;
+    background: var(--border-color);
+    display: none;
+}
+
+.level-1::before,
+.level-2::before,
+.level-3::before,
+.level-4::before {
+    display: block;
+}
+
+/* Вертикальные линии для связей */
+.page-item::after {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: -50%;
+    height: 100%;
+    width: 1px;
+    background: var(--border-color);
+    display: none;
+}
+
+.level-1::after,
+.level-2::after,
+.level-3::after,
+.level-4::after {
+    display: block;
+}
+
+/* Стили для формы редактирования */
+.page-edit-form {
+    margin-top: 10px;
+    padding: 15px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Анимации */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-edit-form {
+    animation: slideDown 0.3s ease;
+}
+
+/* Стили для состояния наведения */
+.page-item:hover {
+    background: var(--bg-hover);
+    border-left-color: var(--primary-color);
+}
+
+/* Стили для кнопок */
+.btn-edit,
+.btn-delete {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.btn-edit {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-delete {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-edit:hover,
+.btn-delete:hover {
+    filter: brightness(1.1);
+}
+
+/* CSS переменные для темы */
+:root {
+    --primary-color: #007bff;
+    --danger-color: #dc3545;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-hover: #e9ecef;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --border-color: #dee2e6;
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #212529;
+        --bg-secondary: #343a40;
+        --bg-hover: #495057;
+        --text-primary: #f8f9fa;
+        --text-secondary: #adb5bd;
+        --border-color: #495057;
+    }
+}

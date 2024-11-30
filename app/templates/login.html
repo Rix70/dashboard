@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="content-container login-container">
+    <h2 class="mb-3 text-center">Вход</h2>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger mb-3">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control form-control-sm" id="floatingInput" placeholder="username" name="username" required>
+            <label for="floatingInput">Имя пользователя</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="password" class="form-control form-control-sm" id="floatingPassword" placeholder="password" name="password" required>
+            <label for="floatingPassword">Пароль</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm w-100">Войти</button>
+    </form>
+</div>
+{% endblock %}

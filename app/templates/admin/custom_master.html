@@ -1,0 +1,15 @@
+{% extends 'admin/base.html' %}
+
+{% block access_control %}
+{% if current_user.is_authenticated %}
+<div class="btn-group">
+    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+        <i class="glyphicon glyphicon-user"></i> {{ current_user.username }} <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+        <li><a href="{{ url_for('main.index') }}">На главную</a></li>
+        <li><a href="{{ url_for('auth.logout') }}">Выйти</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %} 

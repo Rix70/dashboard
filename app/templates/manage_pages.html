@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Управление страницами</h1>
+            <form action="{{ url_for('main.create_page') }}" class="mt-2">
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Добавить страницу
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="pages-list">
+        {% macro render_page_item(page, level=0) %}
+        <div class="card mb-3 ms-{{ level * 3 }}" data-page-id="{{ page.id }}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="h5 mb-0">
+                    {% if level > 0 %}
+                        <span class="text-muted">{{ '─' * level }}</span>
+                    {% endif %}
+                    {{ page.page_name }}
+                </h3>
+                <div class="btn-group">
+                    <button class="btn btn-outline-primary btn-sm" 
+                            onclick="editPage({{ page.id }})">
+                        <i class="fas fa-edit"></i> Редактировать
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" 
+                            onclick="deletePage({{ page.id }})">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card-body" id="editForm{{ page.id }}" style="display: none;">
+                <form onsubmit="updatePage(event, {{ page.id }})">
+                    <div class="mb-3">
+                        <label class="form-label">Название страницы:</label>
+                        <input type="text" 
+                               name="page_name" 
+                               class="form-control" 
+                               value="{{ page.page_name }}" 
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Родительская страница:</label>
+                        <select name="parent_id" class="form-select">
+                            <option value="">-- Без родительской страницы --</option>
+                            {% for p in all_pages %}
+                                {% if p.id != page.id %}
+                                    <option value="{{ p.id }}" 
+                                            {% if page.parent_id == p.id %}selected{% endif %}>
+                                        {{ p.page_name }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Поиск параметров:</label>
+                        <input type="text" 
+                               class="form-control mb-2 search-box"
+                               placeholder="Введите название параметра..." 
+                               oninput="filterParameters({{ page.id }})">
+                        
+                        <div class="list-group parameters-list">
+                            {% for param in parameters %}
+                            <div class="list-group-item parameter-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="form-check">
+                                        <input type="checkbox" 
+                                               class="form-check-input"
+                                               name="selected_ids" 
+                                               value="{{ param.CodeId }}" 
+                                               id="param-{{ page.id }}-{{ param.CodeId }}"
+                                               {% if param.CodeId|string in page.id_list.split(',') %}checked{% endif %}
+                                               onchange="updateSelectedParameters({{ page.id }})">
+                                        <label class="form-check-label" 
+                                               for="param-{{ page.id }}-{{ param.CodeId }}">
+                                            {{ param.Name }} (ID: {{ param.CodeId }})
+                                        </label>
+                                    </div>
+                                    <small class="text-muted ms-2">
+                                        {{ 'Сумма' if param.aggregation_type == 'sum' 
+                                           else 'Среднее' if param.aggregation_type == 'avg' 
+                                           else 'Минимум' if param.aggregation_type == 'min' 
+                                           else 'Максимум' if param.aggregation_type == 'max'
+                                           else 'Средневзвешенное' }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="selected-parameters-container">
+                            <div class="selected-parameters-title">
+                                Выбранные параметры:
+                            </div>
+                            <div id="selectedTags{{ page.id }}" 
+                                 class="selected-parameters-list d-flex flex-wrap gap-2">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <input type="" 
+                           id="parameters_order{{ page.id }}" 
+                           value="{{ page.id_list }}">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Сохранить
+                        </button>
+                        <button type="button" 
+                                class="btn btn-secondary"
+                                onclick="cancelEdit({{ page.id }})">
+                            <i class="fas fa-times"></i> Отмена
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% if page.children %}
+            {% for child in page.children %}
+                {{ render_page_item(child, level + 1) }}
+            {% endfor %}
+        {% endif %}
+        {% endmacro %}
+
+        {% for page in root_pages %}
+            {{ render_page_item(page) }}
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.level-0 { margin-left: 0; }
+.level-1 { margin-left: 30px; }
+.level-2 { margin-left: 60px; }
+.level-3 { margin-left: 90px; }
+
+.page-level-indicator {
+    color: #888;
+    margin-right: 10px;
+    font-family: monospace;
+}
+
+.page-item {
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+    margin-bottom: 10px;
+}
+
+.page-item:hover {
+    border-left-color: var(--primary-color);
+}
+</style>
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages.js') }}"></script>
+{% endblock %}
+{% endblock %} 

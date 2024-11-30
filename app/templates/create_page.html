@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Добавление новой страницы</h1>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <form onsubmit="createPage(event)" class="create-page-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="mb-3">
+                    <label class="form-label">Название страницы:</label>
+                    <input type="text" name="page_name" class="form-control" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Родительская страница:</label>
+                    <select name="parent_id" class="form-select">
+                        <option value="">-- Без родительской страницы --</option>
+                        {% for page in pages %}
+                            <option value="{{ page.id }}">{{ page.page_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Поиск параметров:</label>
+                    <input type="text" 
+                           class="form-control mb-2 search-box"
+                           placeholder="Введите название параметра..." 
+                           oninput="filterParameters('create')">
+                    
+                    <div class="list-group parameters-list">
+                        {% for param in parameters %}
+                        <div class="list-group-item parameter-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           class="form-check-input"
+                                           name="selected_ids" 
+                                           value="{{ param.CodeId }}" 
+                                           id="param-create-{{ param.CodeId }}"
+                                           onchange="updateCreatePageParameters()">
+                                    <label class="form-check-label" 
+                                           for="param-create-{{ param.CodeId }}">
+                                        {{ param.Name }} (ID: {{ param.CodeId }})
+                                    </label>
+                                </div>
+                                <small class="text-muted ms-2">
+                                    {{ 'Сумма' if param.aggregation_type == 'sum' 
+                                       else 'Среднее' if param.aggregation_type == 'avg' 
+                                       else 'Минимум' if param.aggregation_type == 'min' 
+                                       else 'Максимум' if param.aggregation_type == 'max'
+                                       else 'Средневзвешенное' }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="selected-parameters-container">
+                        <div class="selected-parameters-title">
+                            Выбранные параметры:
+                        </div>
+                        <div id="selectedTags" 
+                             class="selected-parameters-list d-flex flex-wrap gap-2">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Создать страницу
+                    </button>
+                    <a href="{{ url_for('main.manage_pages') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages.js') }}"></script>
+{% endblock %}
+{% endblock %} 

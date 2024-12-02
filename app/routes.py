@@ -307,46 +307,7 @@ def shifts():
     
     return render_template('shifts.html', schedule=schedule, start_date=start_date, timedelta=timedelta)
 
-@main.route('/update_shift_data', methods=['POST'])
-@login_required
-def update_shift_data():
-    parameter_id = request.json.get('parameter_id')
-    if parameter_id:
-        session['selected_parameter_id'] = parameter_id
-        
-        # Получаем даты из сессии
-        end_date = session.get('end_date', datetime.now())
-        start_date = session.get('start_date', end_date - timedelta(days=7))
-        
-        # Получаем новые данные для выбранного параметра
-        shift_data = db.session.query(
-            func.sum(HourlyValues.Value).label('total_value'),
-            func.date(HourlyValues.DateTime).label('date'),
-            func.extract('hour', HourlyValues.DateTime).label('hour')
-        ).filter(
-            and_(
-                HourlyValues.DateTime.between(start_date, end_date),
-                HourlyValues.CodeId == parameter_id
-            )
-        ).group_by(
-            func.date(HourlyValues.DateTime),
-            func.extract('hour', HourlyValues.DateTime)
-        ).all()
-        
-        # Агрегируем данные по сменам
-        shift_totals = {'А': 0, 'Б': 0, 'В': 0, 'Г': 0}
-        
-        for value, date, hour in shift_data:
-            if isinstance(date, str):
-                date = datetime.strptime(date, '%Y-%m-%d').date()
-            dt = datetime.combine(date, datetime.min.time().replace(hour=int(hour)))
-            shift = get_shift_for_datetime(dt)
-            if shift and value:
-                shift_totals[shift] += value
-        
-        return jsonify(shift_totals)
-    
-    return jsonify({'error': 'Parameter ID not provided'}), 400
+
 
 
 @main.route('/export_excel', methods=['POST'])

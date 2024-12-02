@@ -17,17 +17,27 @@ document.getElementById('parameterSelect').addEventListener('change', function()
     })
     .then(response => response.json())
     .then(data => {
-        // Обновляем таблицу
+        // Обновляем таблицу с учетом часов
         const shifts = ['А', 'Б', 'В', 'Г'];
         shifts.forEach(shift => {
-            document.querySelector(`td:nth-child(${shifts.indexOf(shift) + 1})`).textContent = 
-                data[shift].toFixed(2);
+            const cell = document.querySelector(`td:nth-child(${shifts.indexOf(shift) + 1})`);
+            cell.innerHTML = `
+                ${data.shift_totals[shift].toFixed(2)}
+                <br>
+                <small class="text-muted">
+                    ${data.shift_hours[shift]} ч
+                </small>
+            `;
         });
         
         // Обновляем график
         const chart = Chart.getChart('shiftChart');
-        chart.data.datasets[0].data = shifts.map(shift => data[shift]);
+        chart.data.datasets[0].data = shifts.map(shift => data.shift_totals[shift]);
         chart.update();
+
+        // Обновляем заголовок
+        document.querySelector('h6 span').textContent = '"' + data.title + '"';
+        document.querySelector('h6 small').textContent = '(' + data.aggregation_type + ')';
     })
     .catch(error => console.error('Error:', error));
 });
@@ -45,9 +55,15 @@ document.getElementById('parameterSelect').addEventListener('change', function()
                     <div class="card shadow mb-4">
                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                             <h6 class="m-0 font-weight-bold text-primary">
-                                Суммарные значения по сменам {{ selected_parameter.name }}
+                                Суммарные значения по сменам параметра <br>
+                                <span class="text-primary">"{{ selected_parameter.Name }}"</span>
                                 <small class="text-muted">
-                                    ({{ selected_parameter.aggregation_type }})
+                                    ({{ selected_parameter.aggregation_type|replace('weighted_avg', 'средневзвешенное')
+                                                                            |replace('avg', 'среднее')
+                                                                            |replace('sum', 'сумма')
+                                                                            |replace('min', 'минимум')
+                                                                            |replace('max', 'максимум')
+                                                                  }})
                                 </small>
                                 <small class="text-muted d-block">
                                     {{ start_date.strftime('%d.%m.%Y %H:%M') }} - {{ end_date.strftime('%d.%m.%Y %H:%M') }}
@@ -76,7 +92,14 @@ document.getElementById('parameterSelect').addEventListener('change', function()
                                     <tbody>
                                         <tr>
                                             {% for shift in ['А', 'Б', 'В', 'Г'] %}
-                                                <td class="text-center">{{ "%.2f"|format(shift_totals[shift]|float) }}</td>
+                                                <td class="text-center">
+                                                    {{ "%.2f"|format(shift_totals[shift]|float) }}
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        {% set hours = shift_schedule|selectattr('shift', 'equalto', shift)|list|length %}
+                                                        {{ hours }} ч
+                                                    </small>
+                                                </td>
                                             {% endfor %}
                                         </tr>
                                     </tbody>
@@ -243,4 +266,22 @@ document.getElementById('parameterSelect').addEventListener('change', function()
         });
     </script>
     {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .aggregation-type {
+        font-size: 0.8em;
+        color: #666;
+        margin-left: 5px;
+    }
+    
+    .shift-value {
+        font-weight: bold;
+    }
+    
+    .shift-header {
+        background-color: #f8f9fc;
+    }
+</style>
 {% endblock %}

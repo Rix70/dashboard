@@ -65,9 +65,11 @@
                                             request.view_args.page_id|string == page.id|string }}">
                         {{ page.page_name }}</a></li>
                 {% endfor %}
+                <li><a href="{{ url_for('main.shifts') }}"
+                    class="{{ 'active' if request.endpoint == 'main.shifts' }}">График смен</a></li>
+                <li><a href="{{ url_for('shifts.sore') }}"
+                  class="{{ 'active' if request.endpoint == 'shifts.sore' }}">Соревнования смен</a></li>
             {% endif %}
-            <li><a href="{{ url_for('main.shifts') }}"
-                  class="{{ 'active' if request.endpoint == 'main.shifts' }}">График смен</a></li>
         </ul>
     </aside>
     {% endif %}

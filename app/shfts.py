@@ -14,7 +14,15 @@ from app import db
 shifts = Blueprint('shifts', __name__)
 
 def get_shift_for_datetime(target_date):
-    """Определяет какая смена работает в заданное время"""
+    """
+    Определяет какая смена работает в заданное время
+    
+    Args:
+        target_date (datetime): Дата и время для определения смены
+        
+    Returns:
+        str: Буква смены (А, Б, В или Г) или None если смена не определена
+    """
     base_date = datetime(2024, 11, 1)  # Опорная дата
     days_diff = (target_date.date() - base_date.date()).days
     
@@ -46,13 +54,15 @@ def get_shift_for_datetime(target_date):
 @shifts.route('/sore', methods=['GET', 'POST'])
 @login_required
 def sore():
-    # Получаем все параметры для выпадающего списка
+    """
+    Отображает страницу соревнования смен с агрегированными данными по параметрам
+    """
     parameters = Parameters.query.all()
     
     # Получаем выбранный параметр из сессии или используем параметр 1 по умолчанию
-    selected_parameter_id = session.get('selected_parameter_id', 1)
+    selected_parameter_id = session.get('selected_parameter_id', 3)
     
-    # Получаем даты из сессии или используем текущую дату
+    # Получение и валидация дат
     end_date = session.get('end_date')
     start_date = session.get('start_date')
     
@@ -63,115 +73,145 @@ def sore():
         end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S%z')
     
     # Получаем параметр и его тип агрегации
-    selected_parameter = Parameters.query.get(selected_parameter_id)
-    
+    selected_parameter = Parameters.query.get_or_404(selected_parameter_id)
+    print(selected_parameter_id, selected_parameter.Name, selected_parameter.aggregation_type, selected_parameter.weight_parameter_id)
     if selected_parameter.aggregation_type == 'weighted_avg' and selected_parameter.weight_parameter_id:
-        # Создаем подзапрос для весовых значений
-        weight_values = db.session.query(
-            HourlyValues.DateTime,
-            HourlyValues.Value.label('weight_value')
-        ).filter(
-            HourlyValues.CodeId == selected_parameter.weight_parameter_id,
-            HourlyValues.DateTime.between(start_date, end_date),
-            HourlyValues.Value != 0  # Исключаем нулевые веса
-        ).subquery()
-
-        # Запрос для средневзвешенного значения
-        shift_data = db.session.query(
-            case(
-                (func.sum(weight_values.c.weight_value) == 0, None),
-                else_=(func.sum(HourlyValues.Value * weight_values.c.weight_value) / 
-                      func.sum(weight_values.c.weight_value))
-            ).label('total_value'),
-            func.date(HourlyValues.DateTime).label('date'),
-            func.extract('hour', HourlyValues.DateTime).label('hour')
-        ).join(
-            weight_values,
-            HourlyValues.DateTime == weight_values.c.DateTime
-        ).filter(
-            and_(
-                HourlyValues.DateTime.between(start_date, end_date),
-                HourlyValues.CodeId == selected_parameter_id
-            )
-        ).group_by(
-            func.date(HourlyValues.DateTime),
-            func.extract('hour', HourlyValues.DateTime)
-        ).all()
+        shift_totals = calculate_weighted_average(selected_parameter, start_date, end_date)
     else:
-        # Запрос с учетом типа агрегации
-        shift_data = db.session.query(
-            case(
-                (selected_parameter.aggregation_type == 'sum', func.sum(HourlyValues.Value)),
-                (selected_parameter.aggregation_type == 'min', func.min(HourlyValues.Value)),
-                (selected_parameter.aggregation_type == 'max', func.max(HourlyValues.Value)),
-                else_=func.avg(HourlyValues.Value)
-            ).label('total_value'),
-            func.date(HourlyValues.DateTime).label('date'),
-            func.extract('hour', HourlyValues.DateTime).label('hour')
-        ).filter(
-            and_(
-                HourlyValues.DateTime.between(start_date, end_date),
-                HourlyValues.CodeId == selected_parameter_id
-            )
-        ).group_by(
-            func.date(HourlyValues.DateTime),
-            func.extract('hour', HourlyValues.DateTime)
-        ).all()
+        shift_totals = calculate_regular_aggregation(selected_parameter, start_date, end_date)
 
-    # Агрегируем данные по сменам
-    shift_totals = {'А': 0, 'Б': 0, 'В': 0, 'Г': 0}
-    shift_counts = {'А': 0, 'Б': 0, 'В': 0, 'Г': 0}  # Для подсчета количества значений
-    
-    for value, date, hour in shift_data:
-        if isinstance(date, str):
-            date = datetime.strptime(date, '%Y-%m-%d').date()
-        
-        dt = datetime.combine(date, datetime.min.time().replace(hour=int(hour)))
-        shift = get_shift_for_datetime(dt)
-        
-        if shift and value is not None:
-            if selected_parameter.aggregation_type in ['sum', 'weighted_avg']:
-                shift_totals[shift] += value
-            elif selected_parameter.aggregation_type == 'min':
-                if shift_counts[shift] == 0 or value < shift_totals[shift]:
-                    shift_totals[shift] = value
-            elif selected_parameter.aggregation_type == 'max':
-                if shift_counts[shift] == 0 or value > shift_totals[shift]:
-                    shift_totals[shift] = value
-            else:  # avg
-                shift_totals[shift] += value
-            shift_counts[shift] += 1
-    
-    # Вычисляем среднее значение для avg
-    if selected_parameter.aggregation_type == 'avg':
-        for shift in shift_totals:
-            if shift_counts[shift] > 0:
-                shift_totals[shift] /= shift_counts[shift]
-
-    pages = PageSettings.query.all()
-    
-    # Добавляем получение данных о сменах за период
-    shift_schedule = []
-    current_date = start_date
-    while current_date <= end_date:
-        for hour in range(24):
-            current_datetime = current_date.replace(hour=hour)
-            shift = get_shift_for_datetime(current_datetime)
-            
-            shift_schedule.append({
-                'datetime': current_datetime,
-                'date': current_datetime.date(),
-                'hour': hour,
-                'shift': shift
-            })
-        current_date += timedelta(days=1)
+    # Формирование графика работы смен
+    shift_schedule = generate_shift_schedule(start_date, end_date)
 
     return render_template('sore.html',
                          shift_totals=shift_totals,
                          shift_schedule=shift_schedule,
-                         pages=pages,
                          start_date=start_date,
                          end_date=end_date,
                          parameters=parameters,
                          selected_parameter=selected_parameter,
-                         selected_parameter_id=selected_parameter_id)
+                         selected_parameter_id=int(selected_parameter_id))
+
+def calculate_weighted_average(parameter, start_date, end_date):
+    """Расчет средневзвешенного значения по сменам"""
+    weight_values = db.session.query(
+        HourlyValues.DateTime,
+        HourlyValues.Value.label('weight_value')
+    ).filter(
+        HourlyValues.CodeId == parameter.weight_parameter_id,
+        HourlyValues.DateTime.between(start_date, end_date),
+        HourlyValues.Value != 0
+    ).subquery()
+
+    shift_data = db.session.query(
+        HourlyValues.Value,
+        HourlyValues.DateTime,
+        weight_values.c.weight_value
+    ).join(
+        weight_values,
+        HourlyValues.DateTime == weight_values.c.DateTime
+    ).filter(
+        and_(
+            HourlyValues.DateTime.between(start_date, end_date),
+            HourlyValues.CodeId == parameter.CodeId
+        )
+    ).all()
+
+    shift_totals = {shift: {'sum': 0, 'weight_sum': 0} for shift in 'АБВГ'}
+
+    for value, dt, weight in shift_data:
+        shift = get_shift_for_datetime(dt)
+        if shift and value is not None and weight is not None:
+            shift_totals[shift]['sum'] += value * weight
+            shift_totals[shift]['weight_sum'] += weight
+
+    return {shift: totals['sum'] / totals['weight_sum'] if totals['weight_sum'] > 0 else 0 
+            for shift, totals in shift_totals.items()}
+
+def calculate_regular_aggregation(parameter, start_date, end_date):
+    """Расчет обычной агрегации (сумма, минимум, максимум, среднее)"""
+    shift_data = db.session.query(
+        HourlyValues.Value,
+        HourlyValues.DateTime
+    ).filter(
+        and_(
+            HourlyValues.DateTime.between(start_date, end_date),
+            HourlyValues.CodeId == parameter.CodeId
+        )
+    ).all()
+
+    shift_totals = {shift: [] for shift in 'АБВГ'}
+    
+    for value, dt in shift_data:
+        shift = get_shift_for_datetime(dt)
+        if shift and value is not None:
+            shift_totals[shift].append(value)
+
+    aggregation_funcs = {
+        'sum': sum,
+        'min': min,
+        'max': max,
+        'avg': lambda x: sum(x) / len(x)
+    }
+
+    return {shift: aggregation_funcs.get(parameter.aggregation_type, 
+                                       aggregation_funcs['avg'])(values) if values else 0
+            for shift, values in shift_totals.items()}
+
+def generate_shift_schedule(start_date, end_date):
+    """Генерация графика работы смен"""
+    schedule = []
+    current_date = start_date
+    while current_date <= end_date:
+        schedule.append({
+            'date': current_date.date(),
+            'hour': current_date.hour,
+            'shift': get_shift_for_datetime(current_date)
+        })
+        current_date += timedelta(hours=1)
+    return schedule
+
+@shifts.route('/update_shift_data', methods=['POST'])
+@login_required
+def update_shift_data():
+    parameter_id = request.json.get('parameter_id')
+    
+    if parameter_id:
+        session['selected_parameter_id'] = parameter_id
+
+        end_date = session.get('end_date')
+        start_date = session.get('start_date')
+        # Если даты пришли как строки, преобразуем их
+        if isinstance(start_date, str):
+            start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S%z')
+        if isinstance(end_date, str):
+            end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S%z')
+        
+        # Получаем параметр и его тип агрегации
+        selected_parameter = Parameters.query.get_or_404(parameter_id)
+        if selected_parameter.aggregation_type == 'weighted_avg' and selected_parameter.weight_parameter_id:
+            shift_totals = calculate_weighted_average(selected_parameter, start_date, end_date)
+        else:
+            shift_totals = calculate_regular_aggregation(selected_parameter, start_date, end_date)
+
+        # Получаем график работы смен с подсчетом часов
+        shift_schedule = generate_shift_schedule(start_date, end_date)
+        shift_hours = {shift: len([x for x in shift_schedule if x['shift'] == shift]) 
+                      for shift in 'АБВГ'}
+
+        aggregation_type = selected_parameter.aggregation_type.replace('weighted_avg', 'средневзвешенное') \
+                                                            .replace('avg', 'среднее') \
+                                                            .replace('sum', 'сумма') \
+                                                            .replace('min', 'минимум') \
+                                                            .replace('max', 'максимум')
+                                                            
+        return jsonify({
+            'title': selected_parameter.Name,
+            'aggregation_type': aggregation_type, 
+            'weight_parameter_id': selected_parameter.weight_parameter_id,
+            'shift_totals': shift_totals,
+            'shift_hours': shift_hours,
+            'shift_schedule': shift_schedule
+        })
+    
+    return jsonify({'error': 'Parameter ID not provided'}), 400
